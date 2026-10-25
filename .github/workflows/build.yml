@@ -23,8 +23,7 @@ jobs:
           PRESET_TIMEZONE="Europe/Berlin"
           EOF
 
-          # 2. Netzwerk-Fix: Wir weisen Armbian an, universelle Netzwerktreiber zu erzwingen,
-          # damit der Ethernet-Port des Linxdot nach dem Booten anspringt.
+          # 2. Netzwerk-Fix
           mkdir -p userpatches/kernel/rockchip-current/
           cat << 'EOF' > userpatches/kernel/rockchip-current/enable-generic-phy.patch
           --- a/arch/arm64/boot/dts/rockchip/rk3566-orangepi-3b.dts
@@ -38,6 +37,7 @@ jobs:
 
       - name: Build Armbian Image
         uses: armbian/build@main
+        continue-on-error: true # Ignoriert den Release-Fehler am Ende, damit der Upload läuft
         with:
           armbian_token: ${{ secrets.GITHUB_TOKEN }}
           armbian_board: orangepi3b
@@ -46,3 +46,9 @@ jobs:
           armbian_kernel_branch: current
           armbian_release: bookworm
           armbian_ui: minimal
+
+      - name: Upload Linxdot Armbian Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: linxdot-armbian-image
+          path: output/images/*.img.xz # Hier liegt das fertige Betriebssystem
