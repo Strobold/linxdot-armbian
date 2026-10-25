@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Armbian Image
         uses: armbian/build@main
-        continue-on-error: true # Ignoriert den Release-Fehler am Ende, damit der Upload läuft
+        continue-on-error: true # Ignoriert den Release-Fehler, damit der Upload danach startet
         with:
           armbian_token: ${{ secrets.GITHUB_TOKEN }}
           armbian_board: orangepi3b
@@ -51,4 +51,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linxdot-armbian-image
-          path: output/images/*.img.xz # Hier liegt das fertige Betriebssystem
+          path: |
+            .src/output/images/*.img.xz
+            output/images/*.img.xz
+            ./*.img.xz
+          if-no-files-found: warn
