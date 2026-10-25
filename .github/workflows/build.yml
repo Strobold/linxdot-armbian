@@ -9,9 +9,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Linxdot Bootloader and Auto-Login Configuration
+      - name: Setup Linxdot Bootloader and Hardware Drivers
         run: |
           mkdir -p userpatches/mixins
+          
+          # 1. Automatische Passwörter setzen
           cat << 'EOF' > userpatches/config-default.conf
           PRESET_ROOT_PASSWORD="meingeheimespasswort"
           PRESET_USER_NAME="admin"
@@ -19,6 +21,19 @@ jobs:
           PRESET_DEFAULT_REALNAME="Linxdot Admin"
           PRESET_LOCALE="en_US.UTF-8"
           PRESET_TIMEZONE="Europe/Berlin"
+          EOF
+
+          # 2. Netzwerk-Fix: Wir weisen Armbian an, universelle Netzwerktreiber zu erzwingen,
+          # damit der Ethernet-Port des Linxdot nach dem Booten anspringt.
+          mkdir -p userpatches/kernel/rockchip-current/
+          cat << 'EOF' > userpatches/kernel/rockchip-current/enable-generic-phy.patch
+          --- a/arch/arm64/boot/dts/rockchip/rk3566-orangepi-3b.dts
+          +++ b/arch/arm64/boot/dts/rockchip/rk3566-orangepi-3b.dts
+          @@ -21,3 +21,7 @@
+          &gmac1 {
+              phy-mode = "rgmii-id";
+              status = "okay";
+          };
           EOF
 
       - name: Build Armbian Image
