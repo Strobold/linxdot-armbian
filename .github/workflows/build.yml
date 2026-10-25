@@ -1,0 +1,33 @@
+name: Build Custom Armbian for Linxdot LD1002
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Linxdot Bootloader and Auto-Login Configuration
+        run: |
+          mkdir -p userpatches/mixins
+          cat << 'EOF' > userpatches/config-default.conf
+          PRESET_ROOT_PASSWORD="meingeheimespasswort"
+          PRESET_USER_NAME="admin"
+          PRESET_USER_PASSWORD="meinadminpasswort"
+          PRESET_DEFAULT_REALNAME="Linxdot Admin"
+          PRESET_LOCALE="en_US.UTF-8"
+          PRESET_TIMEZONE="Europe/Berlin"
+          EOF
+
+      - name: Build Armbian Image
+        uses: armbian/build@main
+        with:
+          armbian_token: ${{ secrets.GITHUB_TOKEN }}
+          armbian_board: orangepi3b
+          armbian_target: build
+          armbian_branch: main
+          armbian_kernel_branch: current
+          armbian_release: bookworm
+          armbian_ui: minimal
